@@ -62,6 +62,7 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 10000;  // milliseconds - Allow
 
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
+#include "LittleFS.h"
 
 #ifdef USE_UNISHOX_COMPRESSION
   #include "./html_compressed/HTTP_HEADER1_ES6.h"
@@ -621,6 +622,24 @@ void StartWebserver(int type)
       XdrvXsnsCall(FUNC_WEB_ADD_HANDLER);
 #endif  // Not FIRMWARE_MINIMAL
 
+      // Serve static HTML, CSS, and JavaScript files
+      Webserver->serveStatic("/html", LittleFS, "/html");
+      Webserver->serveStatic("/css", LittleFS, "/css");
+      Webserver->serveStatic("/js", LittleFS, "/js");
+
+      File file = LittleFS.open("/cube_info", "r");
+      if(!file){
+        AddLog(LOG_LEVEL_ERROR, PSTR("========>>>> Failed to open file for reading"));
+      }
+
+      String fileContent = "";
+      while(file.available()){
+        fileContent += (char)file.read();
+      }
+      AddLog(LOG_LEVEL_DEBUG, PSTR("========>>>> File content as follow: %s"), fileContent.c_str());
+      
+      file.close();
+      
       if (!Web.initial_config) {
         Web.initial_config = (!strlen(SettingsText(SET_STASSID1)) && !strlen(SettingsText(SET_STASSID2)));
         if (Web.initial_config) { AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Blank Device - Initial Configuration")); }
