@@ -1,15 +1,121 @@
 body {
     font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
     background-color: #f0f0f0;
-    text-align: center;
-    padding: 50px;
 }
 
 h1 {
     color: #333;
+    text-align: center;
 }
 
-button {
-    padding: 10px 20px;
+.status {
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #ffebee;
+    border-radius: 4px;
+    color: #d32f2f;
+}
+
+.status.connected {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status.error {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.message-input {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.message-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     font-size: 16px;
+}
+
+.message-input button {
+    padding: 10px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.message-input button:hover {
+    background-color: #1976d2;
+}
+
+.message-container {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: white;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+.message pre {
+    margin: 5px 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.ping-status {
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.ping-label {
+    color: #666;
+}
+
+.ping-time {
+    color: #333;
+    font-family: monospace;
+}
+
+.ping-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.ping-indicator.active {
+    background-color: #4CAF50;
+    box-shadow: 0 0 5px #4CAF50;
+}
+
+.ping-indicator.error {
+    background-color: #f44336;
+    box-shadow: 0 0 5px #f44336;
 }

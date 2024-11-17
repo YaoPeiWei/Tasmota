@@ -1,14 +1,165 @@
 <!DOCTYPE html>
- <html lang="en">
- <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>Test Page</title>
-     <link rel="stylesheet" href="/css/style.css">
- </head>
- <body>
-     <h1>Hello, Tasmota!</h1>
-     <button id="testButton">Click Me</button>
-     <script src="/js/script.js"></script>
- </body>
- </html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasmota WebSocket Test</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h1>Tasmota WebSocket Test</h1>
+    
+    <!-- 连接状态显示 -->
+    <div id="status" class="status">WebSocket: Disconnected</div>
+    
+    <!-- Ping状态指示器 -->
+    <div id="pingStatus" class="ping-status">
+        <span class="ping-label">Ping Status:</span>
+        <span id="lastPing" class="ping-time">Never</span>
+        <span id="pingIndicator" class="ping-indicator"></span>
+    </div>
+    
+    <!-- 消息发送区域 -->
+    <div class="message-input">
+        <input type="text" id="messageInput" placeholder="Enter message...">
+        <button id="sendButton">Send</button>
+    </div>
+
+    <!-- 消息显示区域 -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script>
+        // WebSocket 连接
+        let ws;
+        let pingInterval;
+        const PING_INTERVAL = 30000; // 30秒发送一次ping
+        let lastPongTime = 0;
+        
+        // 连接WebSocket
+        function connectWebSocket() {
+            const wsUrl = `ws://${window.location.hostname}:8080/ws`;
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                console.log('Connected to WebSocket');
+                document.getElementById('status').textContent = 'WebSocket: Connected';
+                document.getElementById('status').className = 'status connected';
+                
+                // 启动ping定时器
+                startPingInterval();
+            };
+            
+            ws.onclose = () => {
+                console.log('Disconnected from WebSocket');
+                document.getElementById('status').textContent = 'WebSocket: Disconnected';
+                document.getElementById('status').className = 'status';
+                document.getElementById('pingIndicator').className = 'ping-indicator';
+                
+                // 清除ping定时器
+                clearInterval(pingInterval);
+                
+                // 1秒后尝试重连
+                setTimeout(connectWebSocket, 1000);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('status').textContent = 'WebSocket: Error';
+                document.getElementById('status').className = 'status error';
+                document.getElementById('pingIndicator').className = 'ping-indicator error';
+            };
+            
+            ws.onmessage = (event) => {
+                console.log('Received:', event.data);
+                appendMessage('Server', event.data);
+            };
+
+            // 添加pong事件处理
+            ws.addEventListener('pong', () => {
+                lastPongTime = Date.now();
+                updatePingStatus(true);
+                setTimeout(() => updatePingStatus(false), 1000); // 1秒后恢复正常状态
+            });
+        }
+        
+        // 更新ping状态显示
+        function updatePingStatus(active) {
+            const indicator = document.getElementById('pingIndicator');
+            const lastPingElement = document.getElementById('lastPing');
+            
+            if (active) {
+                indicator.className = 'ping-indicator active';
+                lastPingElement.textContent = new Date().toLocaleTimeString();
+            } else {
+                indicator.className = 'ping-indicator';
+            }
+        }
+        
+        // 启动ping定时器 - 使用原生ping
+        function startPingInterval() {
+            pingInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    // 发送原生ping帧
+                    ws.send(new Uint8Array([0x9])); // 0x9 是ping帧的opcode
+                    console.log('Native ping sent');
+                    updatePingStatus(true);
+                }
+            }, PING_INTERVAL);
+        }
+        
+        // 添加消息到显示区域
+        function appendMessage(sender, message) {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            
+            // 尝试解析JSON
+            let displayMessage = message;
+            try {
+                const jsonMessage = JSON.parse(message);
+                displayMessage = JSON.stringify(jsonMessage, null, 2);
+            } catch (e) {
+                // 不是JSON，使用原始消息
+            }
+            
+            messageElement.innerHTML = `<strong>${sender}:</strong> <pre>${displayMessage}</pre>`;
+            messageContainer.appendChild(messageElement);
+            
+            // 自动滚动到底部
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && ws.readyState === WebSocket.OPEN) {
+                // 尝试解析为JSON
+                try {
+                    const jsonMessage = JSON.parse(message);
+                    ws.send(JSON.stringify(jsonMessage));
+                    appendMessage('You', JSON.stringify(jsonMessage, null, 2));
+                } catch (e) {
+                    // 不是JSON，发送普通文本
+                    ws.send(message);
+                    appendMessage('You', message);
+                }
+                
+                input.value = '';
+            }
+        }
+        
+        // 事件监听
+        document.getElementById('sendButton').onclick = sendMessage;
+        document.getElementById('messageInput').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        };
+        
+        // 启动连接
+        connectWebSocket();
+    </script>
+</body>
+</html>

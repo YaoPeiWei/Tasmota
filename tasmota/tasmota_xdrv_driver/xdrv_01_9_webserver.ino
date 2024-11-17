@@ -63,6 +63,7 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 10000;  // milliseconds - Allow
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
 #include "LittleFS.h"
+#include "../websocket/websocket_server.h"
 
 #ifdef USE_UNISHOX_COMPRESSION
   #include "./html_compressed/HTTP_HEADER1_ES6.h"
@@ -648,6 +649,8 @@ void StartWebserver(int type)
     Web.reset_web_log_flag = false;
 
     Webserver->begin(); // Web server start
+
+    WebSocketServer.begin();
   }
   if (Web.state != type) {
     AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_HTTP D_WEBSERVER_ACTIVE_ON " %s%s " D_WITH_IP_ADDRESS " %s"),
@@ -699,6 +702,7 @@ void PollDnsWebserver(void)
 {
   if (DnsServer) { DnsServer->processNextRequest(); }
   if (Webserver) { Webserver->handleClient(); }
+  WebSocketServer.loop();
 }
 
 /*********************************************************************************************/
@@ -1886,7 +1890,7 @@ void HandleModuleConfiguration(void) {
     if (ValidGPIO(i, template_gp.io[i])) {
       snprintf_P(stemp, 3, PINS_WEMOS +i*2);
       WSContentSend_P(PSTR("<tr><td style='width:116px'>%s <b>" D_GPIO "%d</b></td><td style='width:146px'><select id='g%d' onchange='ot(%d,this.value)'></select></td>"),
-        (WEMOS==TasmotaGlobal.module_type)?stemp:"", i, i, i);
+        (WEMOS==TasmotaGlobal.module_type)?stemp:"", i, i, i, i);
       WSContentSend_P(PSTR("<td style='width:54px'><select id='h%d'></select></td></tr>"), i);
     }
   }
