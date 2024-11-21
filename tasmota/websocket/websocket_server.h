@@ -16,6 +16,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifdef CUBE_WEBSERVER
 
 #pragma once
 
@@ -38,21 +39,21 @@ public:
   
   void begin() {
     if (server != nullptr) {
-      AddLog(LOG_LEVEL_INFO, PSTR("WS: Already running"));
+      AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Already running"));
       return;
     }
     
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Starting on port %d"), WS_PORT);
+    AddLog(LOG_LEVEL_INFO, PSTR(" CUBE_WS ==> Starting on port %d"), WS_PORT);
     
     server = new AsyncWebServer(WS_PORT);
     if (!server) {
-      AddLog(LOG_LEVEL_ERROR, PSTR("WS: Server creation failed"));
+      AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> Server creation failed"));
       return;
     }
     
     ws = new AsyncWebSocket("/ws");
     if (!ws) {
-      AddLog(LOG_LEVEL_ERROR, PSTR("WS: WebSocket creation failed"));
+      AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> WebSocket creation failed"));
       delete server;
       server = nullptr;
       return;
@@ -74,9 +75,9 @@ public:
     // Start server
     server->begin();
     
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Server started successfully on port %d"), WS_PORT);
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Max clients: %d, Queue size: %d"), WS_MAX_CLIENTS, WS_QUEUE_SIZE);
-    AddLog(LOG_LEVEL_DEBUG, PSTR("WS: WebSocket endpoint: ws://<ip>:%d/ws"), WS_PORT);
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Server started successfully on port %d"), WS_PORT);
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Max clients: %d, Queue size: %d"), WS_MAX_CLIENTS, WS_QUEUE_SIZE);
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> WebSocket endpoint: ws://<ip>:%d/ws"), WS_PORT);
 
     // 启动心跳检测
     startHeartbeat();
@@ -96,12 +97,12 @@ public:
   }
 
   void stop() {
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Stopping WebSocket server..."));
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Stopping WebSocket server..."));
     
     if (ws) {
       uint32_t clientCount = clients.size();
       if (clientCount > 0) {
-        AddLog(LOG_LEVEL_INFO, PSTR("WS: Closing %d active connections"), clientCount);
+        AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Closing %d active connections"), clientCount);
       }
       ws->closeAll();
       delete ws;
@@ -117,7 +118,7 @@ public:
     clients.clear();
     messageQueue.clear();
     
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Server stopped"));
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Server stopped"));
   }
 
   // Broadcast message to all authenticated clients
@@ -214,12 +215,12 @@ private:
   }
 
   void handleConnect(AsyncWebSocketClient* client) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Client trying to connect from %s"), 
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Client trying to connect from %s"), 
            client->remoteIP().toString().c_str());
     
     if (clients.size() >= WS_MAX_CLIENTS) {
-        AddLog(LOG_LEVEL_INFO, PSTR("WS: Rejected - max clients reached"));
-        AddLog(LOG_LEVEL_INFO, PSTR("WS: Rejected client %u - max clients reached (%d)"), 
+        AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Rejected - max clients reached"));
+        AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Rejected client %u - max clients reached (%d)"), 
                client->id(), WS_MAX_CLIENTS);
         client->close(1000, "Max clients reached");
         return;
@@ -231,10 +232,10 @@ private:
     wsClient.authenticated = true;
     clients.push_back(wsClient);
 
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Client %u connected successfully"), client->id());
-    AddLog(LOG_LEVEL_INFO, PSTR("WS: Client %u connected from %s"), 
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Client %u connected successfully"), client->id());
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Client %u connected from %s"), 
            client->id(), client->remoteIP().toString().c_str());
-    AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Active clients: %d"), clients.size());
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Active clients: %d"), clients.size());
 
     // Send welcome message
     DynamicJsonDocument doc(128);
@@ -257,7 +258,7 @@ private:
     }
     
     if (found) {
-      AddLog(LOG_LEVEL_INFO, PSTR("WS: Client %u disconnected, remaining clients: %d"), 
+      AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Client %u disconnected, remaining clients: %d"), 
              client->id(), clients.size());
     }
   }
@@ -279,7 +280,7 @@ private:
   }
 
   void handleMessage(AsyncWebSocketClient* client, const char* message) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Received message from client %u: %s"), 
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Received message from client %u: %s"), 
            client->id(), message);
 
     // 首先判断是否是JSON格式
@@ -294,14 +295,14 @@ private:
         serializeJson(doc, response);
         client->text(response);
         
-        AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Sent JSON response to client %u: %s"), 
+        AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
                client->id(), response.c_str());
     } else {
         // 不是JSON格式，直接返回文本消息
         String response = String(message) + " (Response from server)";
         client->text(response);
         
-        AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Sent text response to client %u: %s"), 
+        AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent text response to client %u: %s"), 
                client->id(), response.c_str());
     }
   }
@@ -319,11 +320,11 @@ private:
 
   void handleError(AsyncWebSocketClient* client, void* arg) {
     uint16_t* code = (uint16_t*)arg;
-    AddLog(LOG_LEVEL_ERROR, PSTR("WS: Client %u error %u"), client->id(), *code);
+    AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> Client %u error %u"), client->id(), *code);
   }
 
   void handlePong(AsyncWebSocketClient* client) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("WS: Received pong from client %u"), client->id());
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Received pong from client %u"), client->id());
     
     for (auto& c : clients) {
       if (c.id == client->id()) {
@@ -380,7 +381,7 @@ private:
     
     for (auto it = clients.begin(); it != clients.end();) {
       if (now - it->lastPing >= WS_TIMEOUT) {
-        AddLog(LOG_LEVEL_INFO, PSTR("WS: Client %u timed out after %d ms"), 
+        AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Client %u timed out after %d ms"), 
                it->id, WS_TIMEOUT);
         ws->close(it->id, 1000, "Timeout");
         it = clients.erase(it);
@@ -391,7 +392,7 @@ private:
     }
     
     if (removedCount > 0) {
-      AddLog(LOG_LEVEL_INFO, PSTR("WS: Cleaned up %d inactive clients, remaining: %d"), 
+      AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Cleaned up %d inactive clients, remaining: %d"), 
              removedCount, clients.size());
     }
   }
@@ -399,3 +400,4 @@ private:
 
 // 在文件末尾定义全局实例
 TasmotaWebSocketServer WebSocketServer; 
+#endif

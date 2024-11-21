@@ -110,6 +110,11 @@ Examples :
 // Remove GPIO Viewer feature
 #undef USE_GPIO_VIEWER
 
+// Enable CUBE_WEBSERVER
+#ifndef CUBE_WEBSERVER
+#define CUBE_WEBSERVER
+#endif
+
 
 
 #endif  // _USER_CONFIG_OVERRIDE_H_

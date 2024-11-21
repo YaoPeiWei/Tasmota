@@ -1640,6 +1640,9 @@ void Every250mSeconds(void)
 #endif  // ESP8266
 #ifdef ESP32
           StartWebserver(Settings->webserver);
+          #ifdef CUBE_WEBSERVER
+            StartCUBESERVER();
+          #endif
 #endif  // ESP32
 
 #ifdef USE_DISCOVERY
