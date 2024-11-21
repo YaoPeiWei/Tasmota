@@ -663,7 +663,6 @@ void StartWebserver(int type)
 
 
 void StartCUBESERVER(void) {
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Starting WebSocket server..."));
   WebSocketServer.begin();
 }
 

@@ -39,7 +39,6 @@ public:
   
   void begin() {
     if (server != nullptr) {
-      AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Already running"));
       return;
     }
     
