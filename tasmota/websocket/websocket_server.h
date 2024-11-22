@@ -287,17 +287,25 @@ private:
     DeserializationError error = deserializeJson(doc, message);
     
     if (!error) {
-        // 是JSON格式，添加from字段后返回
-        doc["from"] = "server";
-        
         String response;
-        serializeJson(doc, response);
+        doc["from"] = "server";
+        if (doc.containsKey("cmd") && doc.containsKey("data")) {
+          char* command = strdup(doc["cmd"]);  // 使用 strdup 将 const char* 转换为 char*
+          char* payload = strdup(doc["data"]);  // 使用 strdup 将 const char* 转换为 char*
+          CommandHandler(command, payload, strlen(payload));
+          free(command);  // 释放 strdup 分配的内存
+          free(payload);  // 释放 strdup 分配的内存
+        } else {
+          DynamicJsonDocument rsp(1024);  // 正确初始化 DynamicJsonDocument
+          rsp["code"] = 1;
+          rsp["message"] = "Parameter format error";
+          serializeJson(rsp, response);
+        }
         client->text(response);
-        
         AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
                client->id(), response.c_str());
     } else {
-        // 不是JSON格式，直接返回文本消息
+        ExecuteCommand((char*)message, SRC_CUBE);
         String response = String(message) + " (Response from server)";
         client->text(response);
         
