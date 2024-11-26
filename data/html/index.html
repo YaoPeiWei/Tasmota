@@ -23,6 +23,7 @@
     <div class="message-input">
         <input type="text" id="messageInput" placeholder="Enter message...">
         <button id="sendButton">Send</button>
+        <button id="clearButton" class="clear-button">Clear</button>
     </div>
 
     <!-- 消息显示区域 -->
@@ -156,6 +157,12 @@
             if (e.key === 'Enter') {
                 sendMessage();
             }
+        };
+        
+        // 清除消息
+        document.getElementById('clearButton').onclick = () => {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '';
         };
         
         // 启动连接

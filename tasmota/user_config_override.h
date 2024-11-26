@@ -116,20 +116,20 @@ Examples :
 #endif
 
 // MQTT settings
-#undef MQTT_HOST
-#define MQTT_HOST "192.168.5.199"
+// #undef MQTT_HOST
+// #define MQTT_HOST "192.168.5.199"
 
-#undef MQTT_USER
-#define MQTT_USER "root"
+// #undef MQTT_USER
+// #define MQTT_USER "root"
 
-#undef MQTT_PORT
-#define MQTT_PORT 1883
+// #undef MQTT_PORT
+// #define MQTT_PORT 1883
 
-#undef MQTT_PASS
-#define MQTT_PASS "cubec2015"
+// #undef MQTT_PASS
+// #define MQTT_PASS "cubec2015"
 
-#undef MQTT_TOPIC
-#define MQTT_TOPIC "cubec"
+// #undef MQTT_TOPIC
+// #define MQTT_TOPIC "cubec"
 
 
 #endif  // _USER_CONFIG_OVERRIDE_H_
