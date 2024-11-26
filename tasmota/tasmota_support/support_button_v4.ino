@@ -422,6 +422,7 @@ void ButtonHandler(void) {
     XdrvMailbox.command_code = (Button.last_state[button_index] & 0xFF) | ((Button.press_counter[button_index] & 0xFF) << 8);
     if (XdrvCall(FUNC_BUTTON_PRESSED)) {
       // Serviced
+      AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: FUNC_BUTTON_PRESSED serviced"));
     }
 #ifdef ESP8266
     else if (SONOFF_4CHPRO == TasmotaGlobal.module_type) {
@@ -534,7 +535,7 @@ void ButtonHandler(void) {
             XdrvMailbox.payload = Button.press_counter[button_index];
             if (XdrvCall(FUNC_BUTTON_MULTI_PRESSED)) {
               // Serviced
-//                AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: FUNC_BUTTON_MULTI_PRESSED serviced"));
+               AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: FUNC_BUTTON_MULTI_PRESSED serviced"));
             } else
 
 #ifdef ROTARY_V1
@@ -549,12 +550,14 @@ void ButtonHandler(void) {
 //                    }
                   if (!Settings->flag3.mqtt_buttons) {       // SetOption73 - Detach buttons from relays and enable MQTT action state for multipress
                     if (Button.press_counter[button_index] == 1) {  // By default first press always send a TOGGLE (2)
+                      AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: execute ExecuteCommandPower, and button.press_counter[button_index] == 1"));
                       ExecuteCommandPower(button_index + Button.press_counter[button_index], POWER_TOGGLE, SRC_BUTTON);
                     } else {
                       SendKey(KEY_BUTTON, button_index +1, Button.press_counter[button_index] +9);    // 2,3,4 and 5 press send just the key value (11,12,13 and 14) for rules
                       if (0 == button_index) {               // BUTTON1 can toggle up to 5 relays if present. If a relay is not present will send out the key value (2,11,12,13 and 14) for rules
                         uint32_t max_device = (TasmotaGlobal.devices_present < MAX_RELAY_BUTTON1) ? TasmotaGlobal.devices_present : MAX_RELAY_BUTTON1;
                         if ((Button.press_counter[button_index] > 1) && (Button.press_counter[button_index] <= max_device)) {
+                          AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: execute ExecuteCommandPower, and button.press_counter[button_index] > 1 and <= max_device"));
                           ExecuteCommandPower(button_index + Button.press_counter[button_index], POWER_TOGGLE, SRC_BUTTON);   // Execute Toggle command internally
                         }
                       }
@@ -563,6 +566,7 @@ void ButtonHandler(void) {
 
                 } else {    // 6 press start wificonfig 2
                   if (!Settings->flag.button_restrict) {     // SetOption1  - Control button multipress
+                    AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: more than 6 press, execute wificonfig 2"));
                     snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_WIFICONFIG " 2"));
                     ExecuteCommand(scmnd, SRC_BUTTON);
                   }

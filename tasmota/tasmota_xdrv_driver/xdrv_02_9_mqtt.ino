@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "../websocket/websocket_server.h"
+
 #define XDRV_02                    2
 
 #define USE_MQTT_NEW_PUBSUBCLIENT
@@ -756,6 +758,20 @@ void MqttPublishPayload(const char* topic, const char* payload) {
 void MqttPublish(const char* topic, bool retained) {
   // Publish <topic> default ResponseData string with optional retained
   MqttPublishPayload(topic, ResponseData(), 0, retained);
+
+  // 创建 JSON 数据
+  DynamicJsonDocument doc(256);
+  doc["from"] = "server";
+  JsonObject req = doc.createNestedObject("req");
+  req["topic"] = topic;  // 使用传入的 topic
+  req["payload"] = ResponseData();  // 使用 ResponseData 获取数据
+
+  // 序列化 JSON 数据
+  String jsonMessage;
+  serializeJson(doc, jsonMessage);
+
+  // 广播 JSON 数据
+  WebSocketServer.broadcast(jsonMessage);
 }
 
 void MqttPublishBinary(const char* topic, bool retained, bool binary) {

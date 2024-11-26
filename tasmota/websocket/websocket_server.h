@@ -124,6 +124,7 @@ public:
   void broadcast(const String& message, bool binary = false) {
     if (!ws) return;
 
+    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Broadcasted DATA: %s"), message.c_str());
     if (messageQueue.size() >= WS_QUEUE_SIZE) {
       messageQueue.erase(messageQueue.begin());
     }
@@ -285,32 +286,42 @@ private:
     // 首先判断是否是JSON格式
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, message);
-    
-    if (!error) {
-        String response;
-        doc["from"] = "server";
-        if (doc.containsKey("cmd") && doc.containsKey("data")) {
-          char* command = strdup(doc["cmd"]);  // 使用 strdup 将 const char* 转换为 char*
-          char* payload = strdup(doc["data"]);  // 使用 strdup 将 const char* 转换为 char*
-          CommandHandler(command, payload, strlen(payload));
-          free(command);  // 释放 strdup 分配的内存
-          free(payload);  // 释放 strdup 分配的内存
-        } else {
-          DynamicJsonDocument rsp(1024);  // 正确初始化 DynamicJsonDocument
-          rsp["code"] = 1;
-          rsp["message"] = "Parameter format error";
+    DynamicJsonDocument rsp(1024);  // 正确初始化 DynamicJsonDocument
+    String response;
+    if (!error && doc.containsKey("req") && doc["req"].is<JsonObject>()) {
+        JsonObject req = doc["req"].as<JsonObject>();
+        if (req.containsKey("topic") && req.containsKey("payload")) {
+          rsp["code"] = 0;
+          rsp["req"] = String(message);
+          rsp["from"] = "server";
           serializeJson(rsp, response);
+          client->text(response);
+          AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
+                 client->id(), response.c_str());
+          char* topic = strdup(req["topic"]);
+          char* payload = strdup(req["payload"]);
+          CommandHandler(topic, payload, strlen(payload));
+          free(topic);
+          free(payload);
+        } else {
+          rsp["code"] = 1;
+          rsp["req"] = String(message);
+          rsp["msg"] = "Parameter format error";
+          rsp["from"] = "server";
+          serializeJson(rsp, response);
+          client->text(response);
+          AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
+                 client->id(), response.c_str());
         }
-        client->text(response);
-        AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
-               client->id(), response.c_str());
     } else {
-        ExecuteCommand((char*)message, SRC_CUBE);
-        String response = String(message) + " (Response from server)";
+        rsp["code"] = 0;
+        rsp["req"] = String(message);
+        rsp["from"] = "server";
+        serializeJson(rsp, response);
         client->text(response);
-        
         AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent text response to client %u: %s"), 
-               client->id(), response.c_str());
+        client->id(), response.c_str());
+        ExecuteCommand((char*)message, SRC_CUBE);   
     }
   }
 
