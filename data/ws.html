@@ -38,7 +38,7 @@
         
         // 连接WebSocket
         function connectWebSocket() {
-            const wsUrl = `ws://${window.location.hostname}:8080/ws`;
+            const wsUrl = `ws://${window.location.hostname}:80/ws`;
             ws = new WebSocket(wsUrl);
             
             ws.onopen = () => {

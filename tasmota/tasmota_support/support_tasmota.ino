@@ -1639,9 +1639,10 @@ void Every250mSeconds(void)
           if (!WifiIsInManagerMode()) { StartWebserver(Settings->webserver); }
 #endif  // ESP8266
 #ifdef ESP32
-          StartWebserver(Settings->webserver);
           #ifdef CUBE_WEBSERVER
             StartCUBESERVER();
+          #else
+            StartWebserver(Settings->webserver);
           #endif
 #endif  // ESP32
 

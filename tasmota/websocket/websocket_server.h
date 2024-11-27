@@ -27,7 +27,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
-#define WS_PORT 8080
+#define WS_PORT 80 
 #define WS_MAX_CLIENTS 8
 #define WS_PING_INTERVAL 30000  // 30 seconds
 #define WS_TIMEOUT 60000        // 60 seconds
