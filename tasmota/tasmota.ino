@@ -401,6 +401,8 @@ LList<char*> backlog;                       // Command backlog implemented with 
 #include "esp_private/esp_gpio_reserve.h"
 #endif  // ESP32
 
+#include "websocket/websocket_server.h"
+
 void setup(void) {
 #ifdef ESP32
 #ifdef CONFIG_IDF_TARGET_ESP32

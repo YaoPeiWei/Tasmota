@@ -17,8 +17,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../websocket/websocket_server.h"
-
 #define XDRV_02                    2
 
 #define USE_MQTT_NEW_PUBSUBCLIENT

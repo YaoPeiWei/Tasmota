@@ -63,7 +63,6 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 10000;  // milliseconds - Allow
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
 #include "LittleFS.h"
-#include "../websocket/websocket_server.h"
 
 #ifdef USE_UNISHOX_COMPRESSION
   #include "./html_compressed/HTTP_HEADER1_ES6.h"

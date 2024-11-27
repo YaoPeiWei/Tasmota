@@ -27,12 +27,17 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
-#define WS_PORT 80 
+#define WS_PORT 80
 #define WS_MAX_CLIENTS 8
 #define WS_PING_INTERVAL 30000  // 30 seconds
 #define WS_TIMEOUT 60000        // 60 seconds
 #define WS_QUEUE_SIZE 32
 #define WS_MAX_MESSAGE_SIZE 4096
+
+extern void AddLog(uint32_t loglevel, PGM_P formatP, ...);
+extern void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len);
+extern void ExecuteCommand(const char *cmnd, uint32_t source);
+
 
 class TasmotaWebSocketServer {
 public:
@@ -55,7 +60,6 @@ public:
     server->serveStatic("/", LittleFS, "/")
         .setDefaultFile("index.html");
     
-    // 处理未找到的请求
     server->onNotFound([](AsyncWebServerRequest *request) {
         request->send(LittleFS, "/index.html");
     });
