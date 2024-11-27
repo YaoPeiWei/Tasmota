@@ -88,11 +88,11 @@ Examples :
 */
 
 // Wifi settings
-#undef  STA_SSID1
-#define STA_SSID1         "CUBEC_AP_2.4G"         
+// #undef  STA_SSID1
+// #define STA_SSID1         "CUBEC_AP_2.4G"         
 
-#undef  STA_PASS1
-#define STA_PASS1         "cubec2015"
+// #undef  STA_PASS1
+// #define STA_PASS1         "cubec2015"
 
 // template for Sonoff Dual R3
 #ifndef USER_TEMPLATE   

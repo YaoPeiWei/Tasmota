@@ -56,10 +56,16 @@ public:
       return;
     }
     
-    // 设置静态文件路径
-    server->serveStatic("/", LittleFS, "/")
-        .setDefaultFile("index.html");
-    
+    // set uri
+    server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/index.html");
+    });
+    server->on("/ws.html", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/ws.html");
+    });
+    server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/style.css");
+    });
     server->onNotFound([](AsyncWebServerRequest *request) {
         request->send(LittleFS, "/index.html");
     });
