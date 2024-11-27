@@ -124,7 +124,7 @@ public:
   void broadcast(const String& message, bool binary = false) {
     if (!ws) return;
 
-    AddLog(LOG_LEVEL_INFO, PSTR("CUBE_WS ==> Broadcasted DATA: %s"), message.c_str());
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Broadcasted DATA: %s"), message.c_str());
     if (messageQueue.size() >= WS_QUEUE_SIZE) {
       messageQueue.erase(messageQueue.begin());
     }
