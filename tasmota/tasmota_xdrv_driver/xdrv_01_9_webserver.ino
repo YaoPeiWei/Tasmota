@@ -625,9 +625,7 @@ void StartWebserver(int type)
 
       #ifdef CUBE_WEBSERVER
         // Serve static HTML, CSS, and JavaScript files
-        Webserver->serveStatic("/html", LittleFS, "/html");
-        Webserver->serveStatic("/css", LittleFS, "/css");
-        Webserver->serveStatic("/js", LittleFS, "/js");
+        Webserver->serveStatic("/", LittleFS, "/");
 
         File file = LittleFS.open("/cube_info", "r");
         if(!file){
