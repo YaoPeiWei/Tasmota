@@ -25,6 +25,7 @@
 #include "../include/tasmota.h"
 #include <vector>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
 
 #define WS_PORT 8080
 #define WS_MAX_CLIENTS 8
@@ -49,6 +50,15 @@ public:
       AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> Server creation failed"));
       return;
     }
+    
+    // 设置静态文件路径
+    server->serveStatic("/", LittleFS, "/")
+        .setDefaultFile("index.html");
+    
+    // 处理未找到的请求
+    server->onNotFound([](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/index.html");
+    });
     
     ws = new AsyncWebSocket("/ws");
     if (!ws) {

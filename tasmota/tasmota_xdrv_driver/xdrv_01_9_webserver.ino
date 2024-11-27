@@ -623,23 +623,6 @@ void StartWebserver(int type)
       XdrvXsnsCall(FUNC_WEB_ADD_HANDLER);
 #endif  // Not FIRMWARE_MINIMAL
 
-      #ifdef CUBE_WEBSERVER
-        // Serve static HTML, CSS, and JavaScript files
-        Webserver->serveStatic("/", LittleFS, "/");
-
-        File file = LittleFS.open("/cube_info", "r");
-        if(!file){
-          AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WEBSERVER ==> Failed to open file for reading"));
-        }
-
-        String fileContent = "";
-        while(file.available()){
-          fileContent += (char)file.read();
-        }
-        AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WEBSERVER ==> File content as follow: %s"), fileContent.c_str());
-        
-        file.close();
-      #endif
       
       if (!Web.initial_config) {
         Web.initial_config = (!strlen(SettingsText(SET_STASSID1)) && !strlen(SettingsText(SET_STASSID2)));
