@@ -701,17 +701,23 @@ void MqttPublishLoggingAsync(bool refresh) {
 
 void MqttPublishPayload(const char* topic, const char* payload, uint32_t binary_length, bool retained) {
   #ifdef CUBE_WEBSERVER
-  // 构建 JSON 数据
-  DynamicJsonDocument doc(256);
-  doc["from"] = "server";
-  JsonObject req = doc.createNestedObject("req");
-  req["topic"] = topic;  // 使用传入的 topic
-  req["payload"] = ResponseData();  // 使用 ResponseData 获取数据
-  // 序列化 JSON 数据
-  String jsonMessage;
-  serializeJson(doc, jsonMessage);
-  // 广播 JSON 数据
-  WebSocketServer.broadcast(jsonMessage);
+  // 检查 topic 和 payload 是否为空
+  if (strlen(topic) > 0 && strlen(payload) > 0) {
+    // 构建 JSON 数据
+    DynamicJsonDocument doc(256);
+    doc["from"] = "server";
+    JsonObject req = doc.createNestedObject("req");
+    req["topic"] = topic;  // 使用传入的 topic
+    req["payload"] = payload;  // 使用 payload 获取数据
+    // 序列化 JSON 数据
+    String jsonMessage;
+    serializeJson(doc, jsonMessage);
+    // 广播 JSON 数据
+    WebSocketServer.broadcast(jsonMessage);
+  } else {
+    // 记录错误日志
+    AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> Topic or payload is empty"));
+  }
   #endif
 
   // Publish <topic> payload string or binary when binary_length set with optional retained

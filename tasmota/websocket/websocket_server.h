@@ -144,8 +144,8 @@ public:
   void broadcast(const String& message, bool binary = false) {
     if (!ws) return;
 
-    AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Broadcasted DATA: %s"), message.c_str());
     if (messageQueue.size() >= WS_QUEUE_SIZE) {
+      AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> messageQueue.size() is over WS_QUEUE_SIZE(%d): %d, message: %s"), WS_QUEUE_SIZE, messageQueue.size(), message.c_str());
       messageQueue.erase(messageQueue.begin());
     }
 
@@ -392,7 +392,8 @@ private:
           if (msg.binary) {
             ws->binary(client.id, msg.message.c_str(), msg.message.length());
           } else {
-            ws->text(client.id, msg.message);
+            AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Broadcast to client %u: %s"), client.id, msg.message.c_str());
+            ws->text(client.id, msg.message.c_str());
           }
         }
       } else {
@@ -400,7 +401,8 @@ private:
         if (msg.binary) {
           ws->binary(msg.clientId, msg.message.c_str(), msg.message.length());
         } else {
-          ws->text(msg.clientId, msg.message);
+          AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Send to client %u: %s"), msg.clientId, msg.message.c_str());
+          ws->text(msg.clientId, msg.message.c_str());
         }
       }
     }
