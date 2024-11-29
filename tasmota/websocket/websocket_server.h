@@ -110,6 +110,9 @@ public:
 
     // Clean inactive clients
     cleanInactiveClients();
+
+    // 处理消息队列
+    processMessageQueue();
   }
 
   void stop() {
@@ -176,6 +179,7 @@ private:
     String message;
     uint32_t clientId;
     bool binary;
+    bool isText;  // 新增字段，标识是文本消息还是二进制消息
   };
 
   AsyncWebServer* server;
@@ -312,11 +316,12 @@ private:
           client->text(response);
           AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent JSON response to client %u: %s"), 
                  client->id(), response.c_str());
-          char* topic = strdup(req["topic"]);
-          char* payload = strdup(req["payload"]);
-          CommandHandler(topic, payload, strlen(payload));
-          free(topic);
-          free(payload);
+          WSMessage msg;
+          msg.message = message;
+          msg.clientId = client->id();
+          msg.binary = false;
+          msg.isText = false;
+          messageQueue.push_back(msg);
         } else {
           rsp["code"] = 1;
           rsp["req"] = String(message);
@@ -335,7 +340,32 @@ private:
         client->text(response);
         AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent text response to client %u: %s"), 
         client->id(), response.c_str());
-        ExecuteCommand((char*)message, SRC_CUBE);
+        WSMessage msg;
+        msg.message = message;
+        msg.clientId = client->id();
+        msg.binary = false;
+        msg.isText = true;  // 标识为文本消息
+        messageQueue.push_back(msg);
+    }
+  }
+
+  void processMessageQueue() {
+    while (!messageQueue.empty()) {
+      WSMessage msg = messageQueue.front();
+      messageQueue.erase(messageQueue.begin());
+
+      if (!msg.isText) {
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, msg.message);
+        JsonObject req = doc["req"].as<JsonObject>();
+        char* topic = strdup(req["topic"]);
+        char* payload = strdup(req["payload"]);
+        CommandHandler(topic, payload, strlen(payload));
+        free(topic);
+        free(payload);
+      } else {
+        ExecuteCommand((char*)msg.message.c_str(), SRC_CUBE);
+      }
     }
   }
 
