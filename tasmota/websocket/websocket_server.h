@@ -108,9 +108,6 @@ public:
     // Handle heartbeat
     handleHeartbeat();
 
-    // Process message queue
-    processQueue();
-
     // Clean inactive clients
     cleanInactiveClients();
   }
@@ -144,31 +141,28 @@ public:
   void broadcast(const String& message, bool binary = false) {
     if (!ws) return;
 
-    if (messageQueue.size() >= WS_QUEUE_SIZE) {
-      AddLog(LOG_LEVEL_ERROR, PSTR("CUBE_WS ==> messageQueue.size() is over WS_QUEUE_SIZE(%d): %d, message: %s"), WS_QUEUE_SIZE, messageQueue.size(), message.c_str());
-      messageQueue.erase(messageQueue.begin());
+    // 直接广播消息给所有客户端
+    for (const auto& client : clients) {
+      if (binary) {
+        ws->binary(client.id, message.c_str(), message.length());
+      } else {
+        AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Broadcast to client %u: %s"), client.id, message.c_str());
+        ws->text(client.id, message.c_str());
+      }
     }
-
-    WSMessage msg;
-    msg.message = message;
-    msg.clientId = 0; // 0 means broadcast
-    msg.binary = binary;
-    messageQueue.push_back(msg);
   }
 
   // Send message to specific client
   void sendTo(uint32_t clientId, const String& message, bool binary = false) {
     if (!ws) return;
 
-    if (messageQueue.size() >= WS_QUEUE_SIZE) {
-      messageQueue.erase(messageQueue.begin());
+    // 直接发送消息给指定客户端
+    if (binary) {
+      ws->binary(clientId, message.c_str(), message.length());
+    } else {
+      AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Send to client %u: %s"), clientId, message.c_str());
+      ws->text(clientId, message.c_str());
     }
-
-    WSMessage msg;
-    msg.message = message;
-    msg.clientId = clientId;
-    msg.binary = binary;
-    messageQueue.push_back(msg);
   }
 
 private:
@@ -341,7 +335,7 @@ private:
         client->text(response);
         AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Sent text response to client %u: %s"), 
         client->id(), response.c_str());
-        ExecuteCommand((char*)message, SRC_CUBE);   
+        ExecuteCommand((char*)message, SRC_CUBE);
     }
   }
 
@@ -380,34 +374,6 @@ private:
     String response;
     serializeJson(doc, response);
     client->text(response);
-  }
-
-  void processQueue() {
-    if (messageQueue.empty()) return;
-
-    for (const auto& msg : messageQueue) {
-      if (msg.clientId == 0) {
-        // Broadcast to all clients without checking authentication
-        for (const auto& client : clients) {
-          if (msg.binary) {
-            ws->binary(client.id, msg.message.c_str(), msg.message.length());
-          } else {
-            AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Broadcast to client %u: %s"), client.id, msg.message.c_str());
-            ws->text(client.id, msg.message.c_str());
-          }
-        }
-      } else {
-        // Send to specific client
-        if (msg.binary) {
-          ws->binary(msg.clientId, msg.message.c_str(), msg.message.length());
-        } else {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("CUBE_WS ==> Send to client %u: %s"), msg.clientId, msg.message.c_str());
-          ws->text(msg.clientId, msg.message.c_str());
-        }
-      }
-    }
-    
-    messageQueue.clear();
   }
 
   void cleanInactiveClients() {
