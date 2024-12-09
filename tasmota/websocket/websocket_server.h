@@ -333,6 +333,10 @@ private:
                  client->id(), response.c_str());
         }
     } else {
+        if (strcmp(message, "ping") == 0) {
+          client->text("pong");
+          return;
+        }
         rsp["code"] = 0;
         rsp["req"] = String(message);
         rsp["from"] = "server";
@@ -367,17 +371,6 @@ private:
         ExecuteCommand((char*)msg.message.c_str(), SRC_CUBE);
       }
     }
-  }
-
-  void handleCommand(AsyncWebSocketClient* client, const JsonDocument& doc) {
-    const char* command = doc["command"];
-    if (!command) {
-      sendError(client, "Missing command");
-      return;
-    }
-
-    // Execute Tasmota command
-    // ExecuteCommand((char*)command, SRC_WEBGUI);
   }
 
   void handleError(AsyncWebSocketClient* client, void* arg) {
